@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include <Adafruit_BMP280.h>
-#include <Adafruit_Sensor.h>
+#include <Adafruit_AHTX0.h>
 
 // I2C pins
 #define SDA 21
@@ -17,8 +16,8 @@
 
 // I2C
 TwoWire I2C_1 = TwoWire(0);
-Adafruit_BMP280 bmp280(&I2C_1);
-bool bmp280_ok = false;
+Adafruit_AHTX0 aht10;
+bool aht10_ok = false;
 
 void setup() {
   Serial.begin(115200);
@@ -48,19 +47,13 @@ void setup() {
   pinMode(LDR_PIN, INPUT);
   
   // BMP280
-  Serial.println("Init BMP280...");
-  if (!bmp280.begin(0x77)) {
-    Serial.println("Not at 0x77, trying 0x76...");
-    if (!bmp280.begin(0x76)) {
-      Serial.println("ERROR: BMP280 not found!");
-      bmp280_ok = false;
-    } else {
-      Serial.println("BMP280 found at 0x76 - OK");
-      bmp280_ok = true;
-    }
+  Serial.println("Init AHT10...");
+  if (!aht10.begin(&I2C_1, 0x38)) {
+    Serial.println("ERROR: AHT10 not found!");
+    aht10_ok = false;
   } else {
-    Serial.println("BMP280 found at 0x77 - OK");
-    bmp280_ok = true;
+    Serial.println("AHT10 found - OK");
+    aht10_ok = true;
   }
   Serial.println();
 }
@@ -78,14 +71,16 @@ void loop() {
   Serial.printf("Soil #2: AO=%d (%.0f%%), DO=%s\n", 
     soil2AO, (soil2AO/4095.0)*100, soil2DO ? "DRY" : "WET");
   
-  // BMP280
-  if (bmp280_ok) {
-    Serial.printf("BMP280: T=%.1f°C, P=%.0f hPa\n",
-      bmp280.readTemperature(),
-      bmp280.readPressure() / 100.0
+  // AHT10
+  if (aht10_ok) {
+    sensors_event_t humidity, temp;
+    aht10.getEvent(&humidity, &temp);
+    Serial.printf("AHT10: T=%.1f°C, H=%.1f%%\n",
+      temp.temperature,
+      humidity.relative_humidity
     );
   } else {
-    Serial.println("BMP280: N/A (not initialized)");
+    Serial.println("AHT10: N/A (not initialized)");
   }
   
   // LDR
