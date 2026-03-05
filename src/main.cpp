@@ -1,16 +1,15 @@
 #include <Arduino.h>
 #include <Wire.h>
+#include <Adafruit_Sensor.h>
 #include <Adafruit_AHTX0.h>
 
 // I2C pins
 #define SDA 21
 #define SCL 22
 
-// Senzor vlhkosti - AO (analog) a DO (digital)
+// Senzor vlhkosti - jen analog
 #define SOIL_HUMIDITY_AO1 34  // Soil #1 - Analog
-#define SOIL_HUMIDITY_DO1 12  // Soil #1 - Digital
-#define SOIL_HUMIDITY_AO2 35  // Soil #2 - Analog  
-#define SOIL_HUMIDITY_DO2 13  // Soil #2 - Digital
+#define SOIL_HUMIDITY_AO2 35  // Soil #2 - Analog
 
 #define LDR_PIN 32             // Light sensor
 
@@ -24,7 +23,7 @@ void setup() {
   delay(1000);
   
   Serial.println("\n\n=== SmartGrowBox Test ===");
-  Serial.println("2x Soil (AO+DO) + BMP280 + LDR\n");
+  Serial.println("2x Soil (Analog) + AHT10 + LDR\n");
   
   // I2C
   I2C_1.begin(SDA, SCL, 100000);
@@ -41,9 +40,7 @@ void setup() {
   
   // Piny
   pinMode(SOIL_HUMIDITY_AO1, INPUT);
-  pinMode(SOIL_HUMIDITY_DO1, INPUT);
   pinMode(SOIL_HUMIDITY_AO2, INPUT);
-  pinMode(SOIL_HUMIDITY_DO2, INPUT);
   pinMode(LDR_PIN, INPUT);
   
   // BMP280
@@ -59,17 +56,15 @@ void setup() {
 }
 
 void loop() {
-  // Soil #1 - AO + DO
+  // Soil #1 - Analog
   int soil1AO = analogRead(SOIL_HUMIDITY_AO1);
-  int soil1DO = digitalRead(SOIL_HUMIDITY_DO1);
-  Serial.printf("Soil #1: AO=%d (%.0f%%), DO=%s\n", 
-    soil1AO, (soil1AO/4095.0)*100, soil1DO ? "DRY" : "WET");
+  Serial.printf("Soil #1: %d (%.1f%%)\n", 
+    soil1AO, (soil1AO/4095.0)*100);
   
-  // Soil #2 - AO + DO
+  // Soil #2 - Analog
   int soil2AO = analogRead(SOIL_HUMIDITY_AO2);
-  int soil2DO = digitalRead(SOIL_HUMIDITY_DO2);
-  Serial.printf("Soil #2: AO=%d (%.0f%%), DO=%s\n", 
-    soil2AO, (soil2AO/4095.0)*100, soil2DO ? "DRY" : "WET");
+  Serial.printf("Soil #2: %d (%.1f%%)\n", 
+    soil2AO, (soil2AO/4095.0)*100);
   
   // AHT10
   if (aht10_ok) {
