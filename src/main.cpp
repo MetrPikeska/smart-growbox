@@ -29,6 +29,16 @@ void setup() {
   // I2C
   I2C_1.begin(SDA, SCL, 100000);
   
+  // Skenuj I2C senzory
+  Serial.println("Scanning I2C devices...");
+  for (int i = 8; i < 120; i++) {
+    I2C_1.beginTransmission(i);
+    if (I2C_1.endTransmission() == 0) {
+      Serial.printf("I2C device found at 0x%X\n", i);
+    }
+  }
+  Serial.println("Scan complete!\n");
+  
   // Piny
   pinMode(SOIL_HUMIDITY_AO1, INPUT);
   pinMode(SOIL_HUMIDITY_DO1, INPUT);
@@ -39,6 +49,7 @@ void setup() {
   // BMP280
   Serial.println("Init BMP280...");
   if (!bmp280.begin(0x77)) {
+    Serial.println("Not at 0x77, trying 0x76...");
     if (!bmp280.begin(0x76)) {
       Serial.println("ERROR: BMP280 not found!");
     }
