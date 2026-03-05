@@ -18,6 +18,7 @@
 // I2C
 TwoWire I2C_1 = TwoWire(0);
 Adafruit_BMP280 bmp280(&I2C_1);
+bool bmp280_ok = false;
 
 void setup() {
   Serial.begin(115200);
@@ -52,9 +53,16 @@ void setup() {
     Serial.println("Not at 0x77, trying 0x76...");
     if (!bmp280.begin(0x76)) {
       Serial.println("ERROR: BMP280 not found!");
+      bmp280_ok = false;
+    } else {
+      Serial.println("BMP280 found at 0x76 - OK");
+      bmp280_ok = true;
     }
+  } else {
+    Serial.println("BMP280 found at 0x77 - OK");
+    bmp280_ok = true;
   }
-  Serial.println("OK\n");
+  Serial.println();
 }
 
 void loop() {
@@ -71,10 +79,14 @@ void loop() {
     soil2AO, (soil2AO/4095.0)*100, soil2DO ? "DRY" : "WET");
   
   // BMP280
-  Serial.printf("BMP280: T=%.1f°C, P=%.0f hPa\n",
-    bmp280.readTemperature(),
-    bmp280.readPressure() / 100.0
-  );
+  if (bmp280_ok) {
+    Serial.printf("BMP280: T=%.1f°C, P=%.0f hPa\n",
+      bmp280.readTemperature(),
+      bmp280.readPressure() / 100.0
+    );
+  } else {
+    Serial.println("BMP280: N/A (not initialized)");
+  }
   
   // LDR
   int ldr = analogRead(LDR_PIN);
